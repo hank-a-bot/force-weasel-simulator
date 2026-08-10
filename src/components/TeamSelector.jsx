@@ -7,7 +7,6 @@ export function TeamSelector({ label, selectedTeam, onSelectTeam, disabledTeamId
   const [searchTerm, setSearchTerm] = useState("");
   const [activeConference, setActiveConference] = useState("ALL");
 
-  // Filter teams based on conference, search, and exclude disabled team
   const filteredTeams = NCAA_TEAMS.filter((team) => {
     if (disabledTeamId && team.id === disabledTeamId) return false;
     if (activeConference !== "ALL" && team.conference !== activeConference) return false;
@@ -26,40 +25,55 @@ export function TeamSelector({ label, selectedTeam, onSelectTeam, disabledTeamId
     <div className="team-selector-container">
       <label className="team-selector-label">{label}</label>
 
-      {/* Trigger Button */}
+      {/* Trigger Button styled in Selected Team Colors */}
       <button
         type="button"
         className="team-selector-button"
         onClick={() => setIsOpen(!isOpen)}
         style={{
-          borderColor: selectedTeam.primaryColor,
-          boxShadow: `0 0 15px ${selectedTeam.primaryColor}40`
+          backgroundColor: selectedTeam.primaryColor,
+          color: selectedTeam.textColor,
+          borderColor: selectedTeam.secondaryColor || "#000000"
         }}
       >
-        <div className="team-badge" style={{ backgroundColor: selectedTeam.primaryColor }}>
-          <span style={{ color: selectedTeam.textColor }}>
-            {selectedTeam.shortName.substring(0, 2).toUpperCase()}
-          </span>
+        <div
+          className="team-badge"
+          style={{
+            backgroundColor: selectedTeam.secondaryColor || "#000000",
+            color: selectedTeam.primaryColor
+          }}
+        >
+          {selectedTeam.shortName.substring(0, 2).toUpperCase()}
         </div>
         <div className="team-selector-info">
-          <span className="team-name">{selectedTeam.name}</span>
-          <span className="team-conference">{selectedTeam.conference}</span>
+          <span className="team-name" style={{ color: selectedTeam.textColor }}>
+            {selectedTeam.name}
+          </span>
+          <span className="team-conference" style={{ color: selectedTeam.textColor, opacity: 0.85 }}>
+            {selectedTeam.conference}
+          </span>
         </div>
-        <ChevronDown className="chevron-icon" />
+        <ChevronDown className="chevron-icon" style={{ color: selectedTeam.textColor }} />
       </button>
 
-      {/* Dropdown Modal */}
+      {/* Modal Dropdown */}
       {isOpen && (
-        <div className="team-dropdown-overlay" onClick={() => setIsOpen(false)}>
+        <div
+          className="team-dropdown-overlay"
+          onClick={() => setIsOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Select ${label}`}
+        >
           <div className="team-dropdown-card" onClick={(e) => e.stopPropagation()}>
             <div className="dropdown-header">
               <h3>Select {label}</h3>
-              <button className="close-btn" onClick={() => setIsOpen(false)}>
+              <button className="close-btn" onClick={() => setIsOpen(false)} aria-label="Close modal">
                 &times;
               </button>
             </div>
 
-            {/* Search Input */}
+            {/* Search Box */}
             <div className="search-box">
               <Search className="search-icon" size={18} />
               <input
@@ -68,6 +82,7 @@ export function TeamSelector({ label, selectedTeam, onSelectTeam, disabledTeamId
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 autoFocus
+                aria-label="Search teams"
               />
             </div>
 
@@ -90,7 +105,7 @@ export function TeamSelector({ label, selectedTeam, onSelectTeam, disabledTeamId
               ))}
             </div>
 
-            {/* Teams List */}
+            {/* Teams Grid (Painted in Team Colors!) */}
             <div className="teams-grid">
               {filteredTeams.length === 0 ? (
                 <div className="no-teams">No teams match your search.</div>
@@ -98,26 +113,37 @@ export function TeamSelector({ label, selectedTeam, onSelectTeam, disabledTeamId
                 filteredTeams.map((team) => (
                   <button
                     key={team.id}
-                    className={`team-option-card ${
-                      selectedTeam.id === team.id ? "selected" : ""
-                    }`}
+                    className={`team-option-card ${selectedTeam.id === team.id ? "selected" : ""}`}
                     onClick={() => {
                       onSelectTeam(team);
                       setIsOpen(false);
                     }}
+                    style={{
+                      backgroundColor: team.primaryColor,
+                      borderColor: team.secondaryColor || "#000000",
+                      color: team.textColor
+                    }}
                   >
                     <div
-                      className="team-color-swatch"
+                      className="team-color-badge"
                       style={{
-                        backgroundColor: team.primaryColor,
-                        borderRight: `6px solid ${team.secondaryColor}`
+                        backgroundColor: team.secondaryColor || "#000000",
+                        color: team.primaryColor
                       }}
-                    />
-                    <div className="team-option-details">
-                      <span className="team-option-name">{team.shortName}</span>
-                      <span className="team-option-mascot">{team.mascot}</span>
+                    >
+                      {team.shortName.substring(0, 2).toUpperCase()}
                     </div>
-                    {selectedTeam.id === team.id && <Check size={18} className="check-icon" />}
+                    <div className="team-option-details">
+                      <span className="team-option-name" style={{ color: team.textColor }}>
+                        {team.shortName}
+                      </span>
+                      <span className="team-option-mascot" style={{ color: team.textColor, opacity: 0.85 }}>
+                        {team.mascot}
+                      </span>
+                    </div>
+                    {selectedTeam.id === team.id && (
+                      <Check size={18} className="check-icon" style={{ color: team.textColor }} />
+                    )}
                   </button>
                 ))
               )}

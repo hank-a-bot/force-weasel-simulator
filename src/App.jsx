@@ -7,16 +7,17 @@ import { NCAA_TEAMS, getTeamById } from "./data/ncaaTeams";
 import { TeamSelector } from "./components/TeamSelector";
 import { OddsInput } from "./components/OddsInput";
 import { Scorebug } from "./components/Scorebug";
-import { getShareUrl, parseUrlParams } from "./utils/shareUrl";
-import { Play, RotateCcw, Download, Share2, Volume2, VolumeX, Flame, Trophy } from "lucide-react";
+import { parseUrlParams } from "./utils/shareUrl";
+import { Play, RotateCcw, Download, Volume2, VolumeX, Flame, Trophy } from "lucide-react";
 import "./styles/main.css";
 
 export default function App() {
-  // Default matchup: Ohio State vs Michigan
-  const [teamA, setTeamA] = useState(getTeamById("ohio_state"));
-  const [teamB, setTeamB] = useState(getTeamById("michigan"));
+  // Default matchup: Notre Dame (ND) vs Virginia (UVA)
+  const [teamA, setTeamA] = useState(() => getTeamById("notre_dame"));
+  const [teamB, setTeamB] = useState(() => getTeamById("virginia"));
   const [teamAProb, setTeamAProb] = useState(50);
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1000000));
+  const [isRerun, setIsRerun] = useState(false);
 
   // Game state
   const [gameState, setGameState] = useState("SETUP"); // SETUP, RACING, FINISHED
@@ -24,7 +25,6 @@ export default function App() {
   const [winner, setWinner] = useState(null);
   const [isMuted, setIsMuted] = useState(false);
   const [toastMessage, setToastMessage] = useState(null);
-  const [isRecordingSupported, setIsRecordingSupported] = useState(true);
 
   const canvasRef = useRef(null);
   const raceEngineRef = useRef(null);
@@ -41,7 +41,8 @@ export default function App() {
         setTeamB(loadedTeamB);
         setTeamAProb(params.teamAProb);
         setSeed(params.seed);
-        showToast("Loaded Matchup from Shared Link!");
+        setIsRerun(true);
+        showToast("Loaded Matchup Seed from Link!");
       }
     }
   }, []);
@@ -57,11 +58,18 @@ export default function App() {
   };
 
   // Start 100-Yard Dash Simulation
-  const handleStartRace = () => {
-    // Generate fresh seed if re-running
-    const currentSeed = gameState === "FINISHED" ? Math.floor(Math.random() * 1000000) : seed;
-    setSeed(currentSeed);
+  const handleStartRace = (forceRerun = false) => {
+    let currentSeed = seed;
+    let rerunFlag = false;
 
+    if (forceRerun) {
+      rerunFlag = true;
+    } else if (gameState === "FINISHED") {
+      currentSeed = Math.floor(Math.random() * 1000000);
+      setSeed(currentSeed);
+    }
+
+    setIsRerun(rerunFlag);
     setGameState("RACING");
     setWinner(null);
     setRaceStats({ yardA: 0, yardB: 0, leader: null });
@@ -74,11 +82,11 @@ export default function App() {
         teamA,
         teamB,
         teamAProb,
-        currentSeed
+        currentSeed,
+        rerunFlag
       );
       raceEngineRef.current = engine;
 
-      // Start Video Recording
       const recorder = new RaceVideoRecorder(canvasRef.current);
       recorderRef.current = recorder;
       recorder.startRecording();
@@ -91,12 +99,11 @@ export default function App() {
         setWinner(winningTeam);
         setGameState("FINISHED");
 
-        // Confetti Burst!
         confetti({
-          particleCount: 120,
-          spread: 80,
+          particleCount: 80,
+          spread: 70,
           origin: { y: 0.6 },
-          colors: [winningTeam.primaryColor, winningTeam.secondaryColor, "#FFD700"]
+          colors: [winningTeam.primaryColor, winningTeam.secondaryColor, "#FFCC00"]
         });
       };
 
@@ -115,33 +122,23 @@ export default function App() {
     }
   };
 
-  // Copy Shareable Link
-  const handleShareLink = () => {
-    const shareUrl = getShareUrl(teamA.id, teamB.id, teamAProb, seed);
-    navigator.clipboard.writeText(shareUrl);
-    showToast("Shareable Dash Link Copied to Clipboard!");
-  };
-
   return (
     <div className="app-root">
       {/* Top Navbar */}
       <header className="app-header">
         <div className="brand-container">
-          <Flame className="brand-icon" size={28} />
-          <div>
-            <div className="brand-title">FORCE WEASEL SIMULATOR</div>
-            <div className="brand-subtitle">100-YARD DASH GAME DECIDER</div>
+          <Flame className="brand-icon" size={22} />
+          <div className="brand-title">
+            <span>FORCE</span>
+            <span>WEASEL</span>
+            <span className="brand-subline">SIMULATOR</span>
           </div>
         </div>
 
         <div className="header-actions">
           <button className="icon-btn" onClick={toggleSound}>
-            {isMuted ? <VolumeX size={18} /> : <Volume2 size={18} />}
-            {isMuted ? "Sound Off" : "Sound On"}
-          </button>
-          <button className="icon-btn" onClick={handleShareLink}>
-            <Share2 size={18} />
-            Share Link
+            {isMuted ? <VolumeX size={14} /> : <Volume2 size={14} />}
+            {isMuted ? "SOUND OFF" : "SOUND ON"}
           </button>
         </div>
       </header>
@@ -153,7 +150,7 @@ export default function App() {
           <div className="setup-panel">
             <h1 className="setup-title">SELECT MATCHUP & ODDS</h1>
             <p className="setup-subtitle">
-              Choose two NCAA FBS teams and set the victory odds. The Force Weasel Simulator will generate a theatrical 100-yard dash race!
+              CHOOSE TWO NCAA FBS TEAMS AND SET THE WIN PROBABILITY TO SIMULATE A THEATRICAL 100-YARD DASH!
             </p>
 
             {/* Team Selection */}
@@ -182,8 +179,8 @@ export default function App() {
             />
 
             {/* Launch Simulation Button */}
-            <button className="launch-sim-btn" onClick={handleStartRace}>
-              <Play size={26} fill="currentColor" />
+            <button className="launch-sim-btn" onClick={() => handleStartRace(false)}>
+              <Play size={18} fill="currentColor" />
               RUN THE 100-YARD DASH
             </button>
           </div>
@@ -202,40 +199,46 @@ export default function App() {
               winner={winner}
             />
 
-            {/* 60 FPS Animation Canvas */}
+            {/* 60 FPS Canvas */}
             <div className="canvas-wrapper">
+              {isRerun && <div className="rerun-tag">THIS IS A RERUN</div>}
               <canvas
                 ref={canvasRef}
-                width={1000}
-                height={480}
+                width={900}
+                height={450}
                 className="race-canvas"
               />
             </div>
 
-            {/* Victory Action Bar (Displayed when finished) */}
+            {/* Victory Action Bar */}
             {gameState === "FINISHED" && winner && (
               <div className="victory-bar">
                 <div className="victory-title">
-                  <Trophy size={32} color="#FFD700" />
+                  <Trophy size={22} color="#b45309" />
                   <div>
                     <div className="winner-banner" style={{ color: winner.primaryColor }}>
                       {winner.name.toUpperCase()} WINS!
                     </div>
-                    <span style={{ fontSize: "0.85rem", color: "#94a3b8" }}>
-                      Odds Displayed: {winner.id === teamA.id ? teamAProb : 100 - teamAProb}%
-                    </span>
+                    {isRerun && (
+                      <span style={{ fontSize: "0.5rem", color: "#b91c1c", fontWeight: "bold" }}>
+                        [ RERUN SEED #{seed} ]
+                      </span>
+                    )}
                   </div>
                 </div>
 
                 <div className="victory-buttons">
                   <button className="btn-primary" onClick={handleDownloadVideo}>
-                    <Download size={18} /> Download Race Video (.webm)
+                    <Download size={14} /> VIDEO (.WEBM)
                   </button>
-                  <button className="btn-secondary" onClick={handleStartRace}>
-                    <RotateCcw size={18} /> Re-Run Dash
+                  <button className="btn-secondary" onClick={() => handleStartRace(true)}>
+                    <RotateCcw size={14} /> RE-RUN
+                  </button>
+                  <button className="btn-secondary" onClick={() => handleStartRace(false)}>
+                    NEW RUN
                   </button>
                   <button className="btn-secondary" onClick={() => setGameState("SETUP")}>
-                    New Matchup
+                    NEW MATCHUP
                   </button>
                 </div>
               </div>
@@ -244,7 +247,7 @@ export default function App() {
         )}
       </main>
 
-      {/* Toast Popup Notification */}
+      {/* Toast Notification */}
       {toastMessage && <div className="toast-msg">{toastMessage}</div>}
     </div>
   );
