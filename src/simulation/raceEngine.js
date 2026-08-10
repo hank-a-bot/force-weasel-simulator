@@ -114,14 +114,7 @@ export class RaceEngine {
     soundEngine.playStarterGun();
     soundEngine.playWhistle();
 
-    if (this.jerseyColors.isConflict) {
-      this.addToast(
-        `COLOR CONFLICT! ${this.teamB.shortName.toUpperCase()} WEARING SECONDARY KIT!`,
-        "#FFCC00"
-      );
-    } else {
-      this.addToast("STARTER GUN BLAST! THEY'RE OFF!", "#FFCC00");
-    }
+    this.addToast("STARTER GUN BLAST! THEY'RE OFF!", "#FFCC00");
 
     const loop = (timestamp) => {
       if (!this.isRunning) return;
