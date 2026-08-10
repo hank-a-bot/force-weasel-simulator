@@ -2,6 +2,17 @@
 import { soundEngine } from "./audioSynth";
 import { resolveJerseyColors } from "../utils/colorUtils";
 
+// High-quality SplitMix32 PRNG for uniform, unbiased random distributions
+function splitmix32(a) {
+  return function () {
+    a |= 0;
+    a = (a + 0x9e3779b9) | 0;
+    let t = Math.imul(a ^ (a >>> 16), 0x21f0aaad);
+    t = Math.imul(t ^ (t >>> 15), 0x735a2d97);
+    return ((t ^ (t >>> 15)) >>> 0) / 4294967296;
+  };
+}
+
 export class RaceEngine {
   constructor(canvas, teamA, teamB, teamAProb, seed, isRerun = false) {
     this.canvas = canvas;
@@ -20,13 +31,16 @@ export class RaceEngine {
     this.startTime = null;
     this.duration = 11.5; // 11.5 seconds fast sprint
 
-    // Roll winner based on seed and probability
-    const rng = this.seededRandom(seed);
-    this.teamAWins = rng < teamAProb / 100;
+    // Instantiate SplitMix32 PRNG generator with seed
+    const nextRng = splitmix32(seed);
+
+    // Roll winner based on unbiased PRNG roll [0.0, 1.0)
+    const roll = nextRng();
+    this.teamAWins = roll < teamAProb / 100;
     this.winner = this.teamAWins ? teamA : teamB;
 
-    // Lead change frequency based on seed
-    const rngLeads = this.seededRandom(seed + 42);
+    // Lead change frequency based on secondary roll
+    const rngLeads = nextRng();
     let baseLeads = 3;
     if (rngLeads < 0.45) baseLeads = 3;
     else if (rngLeads < 0.75) baseLeads = 4;
@@ -38,7 +52,7 @@ export class RaceEngine {
     this.numLeadChanges = Math.max(1, Math.round(baseLeads * (0.4 + oddsCloseness * 0.6)));
 
     // Generate smooth continuous forward trajectories
-    this.trajectories = this.generateSmoothForwardTrajectories(rng, this.numLeadChanges);
+    this.trajectories = this.generateSmoothForwardTrajectories(nextRng, this.numLeadChanges);
 
     this.particles = [];
     this.commentaryToasts = [];
@@ -52,11 +66,6 @@ export class RaceEngine {
 
     this.onProgressUpdate = null;
     this.onRaceComplete = null;
-  }
-
-  seededRandom(seed) {
-    const x = Math.sin(seed++) * 10000;
-    return x - Math.floor(x);
   }
 
   generateSmoothForwardTrajectories(rng, numChanges) {
@@ -322,7 +331,6 @@ export class RaceEngine {
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
 
-      // Black text stroke shadow for maximum pop
       ctx.strokeStyle = "#000000";
       ctx.lineWidth = 4;
       ctx.strokeText(topToast.text, w / 2, rectY + rectH / 2);
