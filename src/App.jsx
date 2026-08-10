@@ -213,7 +213,7 @@ export default function App() {
 
             {/* 60 FPS Canvas */}
             <div className="canvas-wrapper">
-              {isRerun && <div className="rerun-tag">THIS IS A RERUN</div>}
+              {isRerun && <div className="rerun-tag">THIS IS A REPLAY SEED</div>}
               <canvas
                 ref={canvasRef}
                 width={900}
@@ -233,21 +233,21 @@ export default function App() {
                     </div>
                     {isRerun && (
                       <span style={{ fontSize: "0.5rem", color: "#b91c1c", fontWeight: "bold" }}>
-                        [ RERUN SEED #{seed} ]
+                        [ REPLAY SEED #{seed} ]
                       </span>
                     )}
                   </div>
                 </div>
 
                 <div className="victory-buttons">
-                  <button className="btn-primary" onClick={handleDownloadVideo}>
+                  <button className="btn-primary" onClick={() => handleStartRace(false)}>
+                    <Play size={14} fill="currentColor" /> NEW RANDOM DASH
+                  </button>
+                  <button className="btn-secondary" onClick={handleDownloadVideo}>
                     <Download size={14} /> VIDEO (.WEBM)
                   </button>
                   <button className="btn-secondary" onClick={() => handleStartRace(true)}>
-                    <RotateCcw size={14} /> RE-RUN
-                  </button>
-                  <button className="btn-secondary" onClick={() => handleStartRace(false)}>
-                    NEW RUN
+                    <RotateCcw size={14} /> REPLAY SEED
                   </button>
                   <button className="btn-secondary" onClick={() => setGameState("SETUP")}>
                     NEW MATCHUP
