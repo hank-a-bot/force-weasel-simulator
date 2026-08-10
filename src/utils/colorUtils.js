@@ -36,17 +36,18 @@ export function getContrastTextColor(hex) {
 export function resolveJerseyColors(teamA, teamB) {
   const dist = getHexColorDistance(teamA.primaryColor, teamB.primaryColor);
 
-  // If color distance < 85 (similar colors like Red vs Red, Blue vs Blue), Team B wears secondary/away color!
-  if (dist < 85) {
-    // Choose secondary color if distinct from Team A, otherwise white
-    let secondary = teamB.secondaryColor;
-    if (getHexColorDistance(teamA.primaryColor, secondary) < 60 || secondary === "#FFFFFF") {
+  // Sensitive threshold (135) to catch similar colors (Blue vs Navy, Red vs Crimson, Orange vs Yellow)
+  if (dist < 135) {
+    let secondary = teamB.secondaryColor || "#FFFFFF";
+    
+    // If Team B's secondary color is also too close to Team A's primary, use pure white
+    if (getHexColorDistance(teamA.primaryColor, secondary) < 80) {
       secondary = "#FFFFFF";
     }
 
     return {
       teamAJersey: teamA.primaryColor,
-      teamAText: teamA.textColor,
+      teamAText: getContrastTextColor(teamA.primaryColor),
       teamBJersey: secondary,
       teamBText: getContrastTextColor(secondary),
       isConflict: true
@@ -55,9 +56,9 @@ export function resolveJerseyColors(teamA, teamB) {
 
   return {
     teamAJersey: teamA.primaryColor,
-    teamAText: teamA.textColor,
+    teamAText: getContrastTextColor(teamA.primaryColor),
     teamBJersey: teamB.primaryColor,
-    teamBText: teamB.textColor,
+    teamBText: getContrastTextColor(teamB.primaryColor),
     isConflict: false
   };
 }

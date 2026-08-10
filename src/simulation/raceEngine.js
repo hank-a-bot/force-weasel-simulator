@@ -37,7 +37,7 @@ export class RaceEngine {
     const oddsCloseness = 1 - Math.abs(teamAProb - 50) / 50;
     this.numLeadChanges = Math.max(1, Math.round(baseLeads * (0.4 + oddsCloseness * 0.6)));
 
-    // Generate smooth continuous forward trajectories (Min speed = 6.5 yds/sec, MAX ZERO STOPPAGE!)
+    // Generate smooth continuous forward trajectories
     this.trajectories = this.generateSmoothForwardTrajectories(rng, this.numLeadChanges);
 
     this.particles = [];
@@ -59,11 +59,8 @@ export class RaceEngine {
     return x - Math.floor(x);
   }
 
-  // Smooth Continuous Velocity Integration (Min Speed = 6.5 yards/sec -> Zero Stoppage!)
   generateSmoothForwardTrajectories(rng, numChanges) {
     const teamAWins = this.teamAWins;
-    
-    // Frequency of lead changes
     const freq = numChanges * Math.PI;
 
     return {
@@ -71,14 +68,9 @@ export class RaceEngine {
         if (p <= 0) return 0;
         if (p >= 1) return 100 + (teamAWins ? 4 : 0);
 
-        // Base progress gives 100 yards over progress 1.0 (8.7 yds/sec baseline)
         let pos = p * 100;
-
-        // Smooth sine wave speed modulation (+/- 2.5 yards delta max)
-        // Ensure derivative dPos/dp is ALWAYS strongly positive (> 60 yds/unit)
         let leadDelta = Math.sin(p * freq) * 2.2;
 
-        // In the final 15% (p >= 0.85), winner surges ahead smoothly
         if (p > 0.85) {
           const finishFactor = (p - 0.85) / 0.15;
           const winnerSurge = teamAWins ? finishFactor * 4 : -finishFactor * 4;
@@ -161,7 +153,7 @@ export class RaceEngine {
       soundEngine.playCrowdRoar(0.7);
       this.addToast(
         `LEAD CHANGE! ${this.currentLeader.shortName.toUpperCase()} SURGES AHEAD!`,
-        this.currentLeader.primaryColor
+        "#FFCC00"
       );
     }
 
@@ -204,7 +196,7 @@ export class RaceEngine {
 
     this.addToast(
       `TOUCHDOWN! ${this.winner.name.toUpperCase()} WINS!`,
-      this.winner.primaryColor
+      "#FFCC00"
     );
 
     for (let i = 0; i < 70; i++) {
@@ -226,7 +218,7 @@ export class RaceEngine {
     }
   }
 
-  addToast(text, color = "#FFFFFF") {
+  addToast(text, color = "#FFCC00") {
     this.commentaryToasts.push({
       text,
       color,
@@ -274,7 +266,7 @@ export class RaceEngine {
       ctx.restore();
     });
 
-    // Render Sprinters (Continuous Forward Motion!)
+    // Render Sprinters
     this.renderSprinter(
       ctx,
       this.yardToCanvasX(this.yardA),
@@ -308,16 +300,16 @@ export class RaceEngine {
     ctx.stroke();
     ctx.restore();
 
-    // Top Commentary Overlay
+    // 100% High-Contrast Commentary Banner
     if (this.commentaryToasts.length > 0) {
       const topToast = this.commentaryToasts[this.commentaryToasts.length - 1];
       ctx.save();
-      ctx.fillStyle = "rgba(10, 15, 26, 0.95)";
-      ctx.strokeStyle = topToast.color;
+      ctx.fillStyle = "#000000";
+      ctx.strokeStyle = "#FFCC00";
       ctx.lineWidth = 3;
 
-      const rectW = Math.min(w * 0.8, 540);
-      const rectH = 36;
+      const rectW = Math.min(w * 0.82, 560);
+      const rectH = 38;
       const rectX = (w - rectW) / 2;
       const rectY = h * 0.03;
 
@@ -326,17 +318,23 @@ export class RaceEngine {
       ctx.fill();
       ctx.stroke();
 
-      ctx.fillStyle = topToast.color;
-      ctx.font = "bold 13px 'Outfit', sans-serif";
+      ctx.font = "bold 12px 'Press Start 2P', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
+
+      // Black text stroke shadow for maximum pop
+      ctx.strokeStyle = "#000000";
+      ctx.lineWidth = 4;
+      ctx.strokeText(topToast.text, w / 2, rectY + rectH / 2);
+
+      ctx.fillStyle = "#FFCC00";
       ctx.fillText(topToast.text, w / 2, rectY + rectH / 2);
       ctx.restore();
     }
 
     if (this.isRerun) {
       ctx.save();
-      ctx.fillStyle = "rgba(255, 51, 102, 0.95)";
+      ctx.fillStyle = "#dc2626";
       ctx.strokeStyle = "#FFFFFF";
       ctx.lineWidth = 2;
 
@@ -349,7 +347,7 @@ export class RaceEngine {
       ctx.strokeRect(tagX, tagY, tagW, tagH);
 
       ctx.fillStyle = "#FFFFFF";
-      ctx.font = "bold 10px 'Outfit', sans-serif";
+      ctx.font = "bold 9px 'Press Start 2P', monospace";
       ctx.textAlign = "center";
       ctx.textBaseline = "middle";
       ctx.fillText(`RERUN | SEED #${this.seed}`, tagX + tagW / 2, tagY + tagH / 2);
@@ -377,24 +375,26 @@ export class RaceEngine {
     // Left Endzone (Team A)
     ctx.fillStyle = this.jerseyColors.teamAJersey;
     ctx.fillRect(0, topY, margin, fieldH);
-    ctx.fillStyle = this.jerseyColors.teamAText;
-    ctx.font = "bold 13px 'Outfit', sans-serif";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 11px 'Press Start 2P', monospace";
     ctx.textAlign = "center";
     ctx.save();
     ctx.translate(margin / 2, topY + fieldH / 2);
     ctx.rotate(-Math.PI / 2);
+    ctx.strokeText(this.teamA.shortName.toUpperCase(), 0, 0);
     ctx.fillText(this.teamA.shortName.toUpperCase(), 0, 0);
     ctx.restore();
 
     // Right Endzone (Team B)
     ctx.fillStyle = this.jerseyColors.teamBJersey;
     ctx.fillRect(margin + trackW, topY, w - (margin + trackW), fieldH);
-    ctx.fillStyle = this.jerseyColors.teamBText;
-    ctx.font = "bold 13px 'Outfit', sans-serif";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 11px 'Press Start 2P', monospace";
     ctx.textAlign = "center";
     ctx.save();
     ctx.translate(margin + trackW + (w - (margin + trackW)) / 2, topY + fieldH / 2);
     ctx.rotate(Math.PI / 2);
+    ctx.strokeText(this.teamB.shortName.toUpperCase(), 0, 0);
     ctx.fillText(this.teamB.shortName.toUpperCase(), 0, 0);
     ctx.restore();
 
@@ -413,7 +413,7 @@ export class RaceEngine {
 
     const yardLabels = [0, 10, 20, 30, 40, 50, 40, 30, 20, 10, 0];
     ctx.fillStyle = "#FFFFFF";
-    ctx.font = "bold 11px 'Outfit', sans-serif";
+    ctx.font = "bold 10px 'Press Start 2P', monospace";
     ctx.textAlign = "center";
 
     for (let i = 0; i <= 10; i++) {
@@ -451,8 +451,8 @@ export class RaceEngine {
     ctx.fill();
     ctx.stroke();
 
-    ctx.fillStyle = textColor;
-    ctx.font = "bold 8px 'Outfit', sans-serif";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 7px 'Press Start 2P', monospace";
     ctx.fillText(team.shortName.substring(0, 3).toUpperCase(), x - 28, y - 6);
     ctx.restore();
 
@@ -485,8 +485,8 @@ export class RaceEngine {
     ctx.lineWidth = 2;
     ctx.strokeRect(x - 8, y - 8, 16, 16);
 
-    ctx.fillStyle = textColor;
-    ctx.font = "bold 10px 'Outfit', sans-serif";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "bold 9px 'Press Start 2P', monospace";
     ctx.textAlign = "center";
     ctx.fillText(lane === 1 ? "1" : "2", x, y + 4);
 
