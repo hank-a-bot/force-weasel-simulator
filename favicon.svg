@@ -1,20 +1,20 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
-  <!-- Helmet Dome Shell -->
-  <path d="M 12 36 C 12 18, 22 10, 42 10 C 52 10, 56 18, 56 26 C 56 34, 52 40, 44 42 L 36 42 L 36 34 C 36 30, 32 28, 28 28 L 22 28 C 16 28, 12 32, 12 36 Z" fill="#d97706" stroke="#000000" stroke-width="3" stroke-linejoin="round" />
+  <!-- Iconic Notre Dame Metallic Gold Dome Shell (No Stripes) -->
+  <path d="M 12 36 C 12 18, 22 10, 42 10 C 52 10, 56 18, 56 26 C 56 34, 52 40, 44 42 L 36 42 L 36 34 C 36 30, 32 28, 28 28 L 22 28 C 16 28, 12 32, 12 36 Z" fill="#D4AF37" stroke="#0C2340" stroke-width="3" stroke-linejoin="round" />
 
-  <!-- Center Helmet Stripe -->
-  <path d="M 28 10 C 34 10, 42 12, 46 16 L 40 22 C 34 16, 28 14, 22 14 Z" fill="#0284c7" />
+  <!-- Gold Metallic Highlight -->
+  <path d="M 22 14 C 32 12, 44 14, 50 20 L 46 24 C 40 18, 30 16, 22 18 Z" fill="#FFE57F" opacity="0.6" />
 
   <!-- Ear Hole -->
-  <circle cx="28" cy="34" r="5" fill="#000000" />
+  <circle cx="28" cy="34" r="5" fill="#0C2340" />
   <circle cx="28" cy="34" r="3" fill="#ffffff" />
 
-  <!-- Face Mask Grill -->
-  <path d="M 44 26 L 58 26 C 60 26, 60 38, 54 44 L 38 44" fill="none" stroke="#475569" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
-  <line x1="44" y1="32" x2="58" y2="32" stroke="#475569" stroke-width="3" />
-  <line x1="44" y1="38" x2="56" y2="38" stroke="#475569" stroke-width="3" />
-  <line x1="52" y1="26" x2="52" y2="44" stroke="#475569" stroke-width="3" />
+  <!-- Official Notre Dame Navy Blue Face Mask Grill -->
+  <path d="M 44 26 L 58 26 C 60 26, 60 38, 54 44 L 38 44" fill="none" stroke="#0C2340" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" />
+  <line x1="44" y1="32" x2="58" y2="32" stroke="#0C2340" stroke-width="3" />
+  <line x1="44" y1="38" x2="56" y2="38" stroke="#0C2340" stroke-width="3" />
+  <line x1="52" y1="26" x2="52" y2="44" stroke="#0C2340" stroke-width="3" />
 
-  <!-- Chin Strap Loop -->
-  <path d="M 24 38 C 24 46, 32 48, 38 44" fill="none" stroke="#000000" stroke-width="2.5" stroke-linecap="round" />
+  <!-- Chin Strap -->
+  <path d="M 24 38 C 24 46, 32 48, 38 44" fill="none" stroke="#0C2340" stroke-width="2.5" stroke-linecap="round" />
 </svg>
