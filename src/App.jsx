@@ -11,12 +11,23 @@ import { parseUrlParams } from "./utils/shareUrl";
 import { Play, RotateCcw, Download, Volume2, VolumeX, Flame, Trophy } from "lucide-react";
 import "./styles/main.css";
 
+// Cryptographically Secure Seed Generator
+function generateCryptoSeed() {
+  if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
+    const arr = new Uint32Array(2);
+    window.crypto.getRandomValues(arr);
+    const timeEntropy = Math.floor(performance.now() * 1000) ^ Date.now();
+    return Math.abs((arr[0] ^ arr[1] ^ timeEntropy) % 1000000);
+  }
+  return Math.floor(Math.random() * 1000000);
+}
+
 export default function App() {
   // Default matchup: Notre Dame (ND) vs Virginia (UVA)
   const [teamA, setTeamA] = useState(() => getTeamById("notre_dame"));
   const [teamB, setTeamB] = useState(() => getTeamById("virginia"));
   const [teamAProb, setTeamAProb] = useState(50);
-  const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1000000));
+  const [seed, setSeed] = useState(() => generateCryptoSeed());
   const [isRerun, setIsRerun] = useState(false);
 
   // Game state
@@ -59,13 +70,14 @@ export default function App() {
 
   // Start 100-Yard Dash Simulation
   const handleStartRace = (forceRerun = false) => {
-    let currentSeed = seed;
+    let currentSeed;
     let rerunFlag = false;
 
     if (forceRerun) {
       rerunFlag = true;
-    } else if (gameState === "FINISHED") {
-      currentSeed = Math.floor(Math.random() * 1000000);
+      currentSeed = seed;
+    } else {
+      currentSeed = generateCryptoSeed();
       setSeed(currentSeed);
     }
 
