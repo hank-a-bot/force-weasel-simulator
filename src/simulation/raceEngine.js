@@ -55,7 +55,6 @@ export class RaceEngine {
     this.trajectories = this.generateSmoothForwardTrajectories(nextRng, this.numLeadChanges);
 
     this.particles = [];
-    this.commentaryToasts = [];
     this.leadChangeCount = 0;
 
     this.progress = 0;
@@ -114,8 +113,6 @@ export class RaceEngine {
     soundEngine.playStarterGun();
     soundEngine.playWhistle();
 
-    this.addToast("STARTER GUN BLAST! THEY'RE OFF!", "#FFCC00");
-
     const loop = (timestamp) => {
       if (!this.isRunning) return;
       const elapsed = (timestamp - this.startTime) / 1000;
@@ -153,10 +150,6 @@ export class RaceEngine {
     if (prevLeader && this.currentLeader && prevLeader.id !== this.currentLeader.id && p < 0.92) {
       this.leadChangeCount++;
       soundEngine.playCrowdRoar(0.7);
-      this.addToast(
-        `LEAD CHANGE! ${this.currentLeader.shortName.toUpperCase()} SURGES AHEAD!`,
-        "#FFCC00"
-      );
     }
 
     if (Math.floor(p * 50) % 4 === 0) {
@@ -167,9 +160,6 @@ export class RaceEngine {
       this.addParticle(this.yardA, 1);
       this.addParticle(this.yardB, 2);
     }
-
-    this.commentaryToasts.forEach((t) => (t.life -= 0.016));
-    this.commentaryToasts = this.commentaryToasts.filter((t) => t.life > 0);
 
     this.particles.forEach((pt) => {
       pt.x += pt.vx;
@@ -196,18 +186,19 @@ export class RaceEngine {
     soundEngine.playWhistle();
     soundEngine.playVictoryFanfare();
 
-    this.addToast(
-      `TOUCHDOWN! ${this.winner.name.toUpperCase()} WINS!`,
-      "#FFCC00"
-    );
+    // Use winner's exact primary & secondary colors for celebration burst!
+    const winnerJerseyColor = this.teamAWins
+      ? this.jerseyColors.teamAJersey
+      : this.jerseyColors.teamBJersey;
+    const winnerSecondaryColor = this.winner.secondaryColor || "#FFCC00";
 
-    for (let i = 0; i < 70; i++) {
+    for (let i = 0; i < 75; i++) {
       this.particles.push({
         x: this.canvas.width * 0.86 + (Math.random() - 0.5) * 60,
         y: this.canvas.height * 0.5 + (Math.random() - 0.5) * 120,
         vx: (Math.random() - 0.5) * 6,
         vy: (Math.random() - 0.5) * 6,
-        color: i % 2 === 0 ? this.winner.primaryColor : "#FFCC00",
+        color: i % 2 === 0 ? winnerJerseyColor : winnerSecondaryColor,
         size: Math.random() * 6 + 4,
         alpha: 1.0
       });
@@ -218,14 +209,6 @@ export class RaceEngine {
     if (this.onRaceComplete) {
       this.onRaceComplete(this.winner);
     }
-  }
-
-  addToast(text, color = "#FFCC00") {
-    this.commentaryToasts.push({
-      text,
-      color,
-      life: 2.2
-    });
   }
 
   addParticle(yard, lane) {
@@ -301,37 +284,6 @@ export class RaceEngine {
     ctx.lineTo(finishX, h * 0.78);
     ctx.stroke();
     ctx.restore();
-
-    // 100% High-Contrast Commentary Banner
-    if (this.commentaryToasts.length > 0) {
-      const topToast = this.commentaryToasts[this.commentaryToasts.length - 1];
-      ctx.save();
-      ctx.fillStyle = "#000000";
-      ctx.strokeStyle = "#FFCC00";
-      ctx.lineWidth = 3;
-
-      const rectW = Math.min(w * 0.82, 560);
-      const rectH = 38;
-      const rectX = (w - rectW) / 2;
-      const rectY = h * 0.03;
-
-      ctx.beginPath();
-      ctx.roundRect(rectX, rectY, rectW, rectH, 6);
-      ctx.fill();
-      ctx.stroke();
-
-      ctx.font = "bold 12px 'Press Start 2P', monospace";
-      ctx.textAlign = "center";
-      ctx.textBaseline = "middle";
-
-      ctx.strokeStyle = "#000000";
-      ctx.lineWidth = 4;
-      ctx.strokeText(topToast.text, w / 2, rectY + rectH / 2);
-
-      ctx.fillStyle = "#FFCC00";
-      ctx.fillText(topToast.text, w / 2, rectY + rectH / 2);
-      ctx.restore();
-    }
 
     if (this.isRerun) {
       ctx.save();
